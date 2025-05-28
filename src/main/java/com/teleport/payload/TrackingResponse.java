@@ -1,17 +1,24 @@
 package com.teleport.payload;
 
-import lombok.Getter;
-
 import java.time.OffsetDateTime;
 
-@Getter
 public class TrackingResponse {
-    private final String trackingNumber;
-    private final OffsetDateTime createdAt;
+    public String getTrackingNumber() {
+        return trackingNumber;
+    }
 
-    public TrackingResponse(String trackingNumber, OffsetDateTime createdAt) {
+    public void setTrackingNumber(String trackingNumber) {
         this.trackingNumber = trackingNumber;
+    }
+
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
+    private String trackingNumber;
+    private OffsetDateTime createdAt;
 }
