@@ -13,7 +13,7 @@ public class TrackingResponseTest {
         OffsetDateTime createdAt = OffsetDateTime.now();
         TrackingResponse response = new TrackingResponse();
         response.setTrackingNumber(trackingNumber);
-        response.setCreatedAt(createdAt);
+        response.setCreatedAt(createdAt.toString());
 
         assertEquals(trackingNumber, response.getTrackingNumber());
         assertEquals(createdAt, response.getCreatedAt());

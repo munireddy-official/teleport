@@ -11,14 +11,14 @@ public class TrackingResponse {
         this.trackingNumber = trackingNumber;
     }
 
-    public OffsetDateTime getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(OffsetDateTime createdAt) {
+    public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
 
     private String trackingNumber;
-    private OffsetDateTime createdAt;
+    private String createdAt;
 }
