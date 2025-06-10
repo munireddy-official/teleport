@@ -14,16 +14,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TrackingNumberGeneratorServiceTest {
-    private RedisTemplate<String, Long> redisTemplate;
-    private ValueOperations<String, Long> valueOperations;
+    private ValueOperations<String, String> valueOperations;
     private TrackingNumberGeneratorService service;
 
     @BeforeEach
     void setUp() {
-        redisTemplate = mock(RedisTemplate.class);
-        valueOperations = mock(ValueOperations.class);
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        service = new TrackingNumberGeneratorService(redisTemplate);
+        service = new TrackingNumberGeneratorService();
     }
 
     @Test
