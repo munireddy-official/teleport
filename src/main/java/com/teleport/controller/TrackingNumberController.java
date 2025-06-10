@@ -38,7 +38,7 @@ public class TrackingNumberController {
             @RequestParam String customer_name,
             @RequestParam @NotBlank @Pattern(regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$", message = "customer_slug must be in kebab-case") String customer_slug
     ) {
-        String trackingNumber = generatorService.generateTrackingNumber(origin_country_id, destination_country_id, customer_slug, created_at);
+        String trackingNumber = generatorService.generateTrackingNumber(origin_country_id, destination_country_id, customer_slug);
 
         ZonedDateTime now = ZonedDateTime.now();;
         DateTimeFormatter rfc3339Formatter = DateTimeFormatter.ISO_ZONED_DATE_TIME;

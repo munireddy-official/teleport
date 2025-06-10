@@ -1,54 +1,62 @@
 package com.teleport.service;
 
+import com.teleport.exception.handler.InvalidTrackingNumberException;
+import com.teleport.exception.handler.SequenceLimitExceededException;
+import com.teleport.exception.handler.TrackingNumberGenerationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Service
 public class TrackingNumberGeneratorService {
 
+    private static final Logger logger = LoggerFactory.getLogger(TrackingNumberGeneratorService.class);
     private final RedisTemplate<String, Long> redisTemplate;
 
     public TrackingNumberGeneratorService(RedisTemplate<String, Long> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
-    public String generateTrackingNumber(String origin, String destination, String slug, OffsetDateTime timestamp) {
-        // Normalize and validate inputs
-        String originCode = origin.trim().toUpperCase();
-        String destinationCode = destination.trim().toUpperCase();
+    public String generateTrackingNumber(String origin, String destination, String slug) {
+        try {
+            String redisKey = String.format("track:%s:%s:%s", origin, destination, slug.toLowerCase());
+            Long sequence = redisTemplate.opsForValue().increment(redisKey);
+            redisTemplate.expire(redisKey, Duration.ofHours(24));
 
-        String slugPrefix = slug.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
-        slugPrefix = (slugPrefix.length() >= 2) ? slugPrefix.substring(0, 2) : String.format("%-2s", slugPrefix).replace(' ', 'X');
+            if (sequence == null) {
+                logger.error("Failed to increment Redis sequence for key: {}", redisKey);
+                throw new TrackingNumberGenerationException("Unable to generate sequence number.");
+            }
 
-        // Use date only to partition Redis keys (e.g., yyMMdd)
-        String datePart = timestamp.format(DateTimeFormatter.ofPattern("yyMMdd"));
+            if (sequence > 999999) {
+                logger.warn("Sequence limit exceeded for key: {}", redisKey);
+                throw new SequenceLimitExceededException("Sequence number exceeded limit for the day.");
+            }
 
-        // Compose Redis key for the counter
-        String redisKey = String.format("track:%s:%s:%s:%s", slugPrefix, originCode, destinationCode, datePart);
+            String slugPrefix = slug.replaceAll("[^a-zA-Z0-9]", "").toUpperCase();
+            slugPrefix = slugPrefix.length() >= 2 ? slugPrefix.substring(0, 2) : "XX";
 
-        // Atomic counter from Redis
-        Long sequence = redisTemplate.opsForValue().increment(redisKey);
-        redisTemplate.expire(redisKey, Duration.ofDays(1)); // optional cleanup
+            String prefix = String.format("%s%s%s", slugPrefix, origin.toUpperCase(), destination.toUpperCase());
+            prefix = prefix.length() > 10 ? prefix.substring(0, 10) : prefix;
 
-        String counter = String.format("%04d", sequence % 10000); // 4-digit sequence (wraps at 9999)
+            String trackingNumber = String.format("%s%06d", prefix, sequence);
 
-        // Final tracking number format
-        String trackingNumber = slugPrefix + originCode + destinationCode + datePart + counter;
+            if (!trackingNumber.matches("^[A-Z0-9]{1,16}$")) {
+                logger.error("Generated tracking number [{}] does not match required pattern", trackingNumber);
+                throw new InvalidTrackingNumberException("Tracking number format invalid.");
+            }
 
-        // Ensure length and pattern
-        if (trackingNumber.length() > 16) {
-            throw new IllegalStateException("Generated tracking number exceeds 16 characters: " + trackingNumber);
+            return trackingNumber;
+        } catch (TrackingNumberGenerationException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected error during tracking number generation", e);
+            throw new TrackingNumberGenerationException("Unexpected error occurred.");
         }
-        if (!trackingNumber.matches("^[A-Z0-9]{1,16}$")) {
-            throw new IllegalStateException("Generated tracking number does not match required format: " + trackingNumber);
-        }
-
-        return trackingNumber;
     }
+
 
 }

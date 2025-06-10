@@ -36,7 +36,7 @@ public class TrackingNumberGeneratorServiceTest {
         String expectedPrefix = "REINUS250528";
         when(valueOperations.increment(anyString())).thenReturn(123L);
 
-        String result = service.generateTrackingNumber(origin, destination, slug, timestamp);
+        String result = service.generateTrackingNumber(origin, destination, slug);
 
         assertNotNull(result);
         assertTrue(result.matches("^[A-Z0-9]{16}$"));
@@ -49,7 +49,7 @@ public class TrackingNumberGeneratorServiceTest {
         when(valueOperations.increment(anyString())).thenReturn(1L);
         OffsetDateTime timestamp = OffsetDateTime.now();
 
-        String result = service.generateTrackingNumber("US", "CA", "x", timestamp);
+        String result = service.generateTrackingNumber("US", "CA", "x");
         assertTrue(result.startsWith("XXUSCA"));
     }
 
@@ -60,7 +60,7 @@ public class TrackingNumberGeneratorServiceTest {
         OffsetDateTime timestamp = OffsetDateTime.now();
 
         assertDoesNotThrow(() ->
-                service.generateTrackingNumber("US", "CA", "ab", timestamp)
+                service.generateTrackingNumber("US", "CA", "ab")
         );
     }
 

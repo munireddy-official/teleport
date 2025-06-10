@@ -1,7 +1,5 @@
 package com.teleport.payload;
 
-import java.time.OffsetDateTime;
-
 public class TrackingResponse {
     public String getTrackingNumber() {
         return trackingNumber;
